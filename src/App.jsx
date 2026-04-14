@@ -35,7 +35,24 @@ function buildPD({cv,ac,th,br,sd,inf}){const rr=br-inf,R=800,yv=Array.from({leng
 function buildWP(r){let rrif=r.rrifBalance,tfsa=r.tfsaBalance,nonReg=r.nonRegBalance;const acbR=r.nonRegBalance>0?Math.min(1,r.nonRegACB/r.nonRegBalance):1,retRate=r.portfolioReturn/100,cpp=r.cppMonthly*12,oasG=r.oasMonthly*12,desired=r.desiredMonthlyIncome*12,years=[];
 for(let age=r.retirementAge;age<=r.lifeExpectancy;age++){rrif*=(1+retRate);tfsa*=(1+retRate);nonReg*=(1+retRate);const rrifMin=rrif*getRRIFRate(age),custom=r.customWithdrawals?.[age],guaranteed=cpp+oasNet(cpp+oasG+rrifMin,oasG),gap=Math.max(0,desired-guaranteed);let rrifW=0,tfsaW=0,nrW=0;
 if(custom&&(custom.rrif||custom.tfsa||custom.nonReg)){rrifW=Math.min(custom.rrif||0,rrif);tfsaW=Math.min(custom.tfsa||0,tfsa);nrW=Math.min(custom.nonReg||0,nonReg)}
-else{rrifW=Math.min(Math.max(rrifMin,gap*.5),rrif);const rem=Math.max(0,gap-rrifW);if(r.withdrawOrder==="optimal"){nrW=Math.min(rem*.6,nonReg);tfsaW=Math.min(Math.max(0,gap-rrifW-nrW),tfsa)}else if(r.withdrawOrder==="tfsa-first"){tfsaW=Math.min(rem,tfsa);nrW=Math.min(Math.max(0,gap-rrifW-tfsaW),nonReg)}else if(r.withdrawOrder==="nonreg-first"){nrW=Math.min(rem,nonReg);tfsaW=Math.min(Math.max(0,gap-rrifW-nrW),tfsa)}else{rrifW=Math.min(Math.max(rrifMin,gap),rrif);nrW=Math.min(Math.max(0,gap-rrifW),nonReg)}}
+else{
+  if(r.withdrawOrder==="optimal"){
+    // True tax-minimizing order:
+    // 1. RRIF minimum only (mandatory — 100% taxable, unavoidable)
+    // 2. Non-Reg to fill gap (only 50% of gain is taxable — more efficient than extra RRIF)
+    // 3. TFSA as absolute last resort (tax-free growth + tax-free to heirs — preserve longest)
+    // 4. Additional RRIF only if Non-Reg + TFSA cannot cover the full gap
+    rrifW=Math.min(rrifMin,rrif);
+    const rem1=Math.max(0,gap-rrifW);
+    nrW=Math.min(rem1,nonReg);
+    const rem2=Math.max(0,rem1-nrW);
+    tfsaW=Math.min(rem2,tfsa);
+    const stillShort=Math.max(0,rem2-tfsaW);
+    rrifW=Math.min(rrifW+stillShort,rrif);
+  }else if(r.withdrawOrder==="tfsa-first"){const rem=Math.max(0,gap-Math.min(rrifMin,rrif));rrifW=Math.min(rrifMin,rrif);tfsaW=Math.min(rem,tfsa);nrW=Math.min(Math.max(0,gap-rrifW-tfsaW),nonReg);const s2=Math.max(0,gap-rrifW-tfsaW-nrW);rrifW=Math.min(rrifW+s2,rrif);}
+  else if(r.withdrawOrder==="nonreg-first"){const rem=Math.max(0,gap-Math.min(rrifMin,rrif));rrifW=Math.min(rrifMin,rrif);nrW=Math.min(rem,nonReg);tfsaW=Math.min(Math.max(0,gap-rrifW-nrW),tfsa);const s2=Math.max(0,gap-rrifW-nrW-tfsaW);rrifW=Math.min(rrifW+s2,rrif);}
+  else{rrifW=Math.min(Math.max(rrifMin,gap),rrif);nrW=Math.min(Math.max(0,gap-rrifW),nonReg);tfsaW=Math.min(Math.max(0,gap-rrifW-nrW),tfsa);}
+}
 const nrTG=nrW*(1-acbR)*.5,oN=oasNet(cpp+oasG+rrifW,oasG),taxable=cpp+oN+rrifW+nrTG,tax=calcTax(taxable,r.province);
 rrif=Math.max(0,rrif-rrifW);tfsa=Math.max(0,tfsa-tfsaW);nonReg=Math.max(0,nonReg-nrW);const totalIncome=(cpp+oN)+rrifW+tfsaW+nrW;
 years.push({age,rrifBal:rrif,tfsaBal:tfsa,nonRegBal:nonReg,totalBal:rrif+tfsa+nonReg,cpp,oasNet:oN,rrifW,tfsaW,nrW,totalIncome,taxableIncome:taxable,tax:tax.total,effectiveRate:tax.effective,netIncome:totalIncome-tax.total,marginal:tax.marginal})}return years}
@@ -411,7 +428,18 @@ export default function App(){
             <label style={{fontSize:10,color:"#8899aa",display:"block",marginBottom:5}}>Withdrawal Order</label>
             <select value={r.withdrawOrder} onChange={e=>updR("withdrawOrder")(e.target.value)} style={{marginBottom:12}}><option value="optimal">Optimal (Tax-Minimizing)</option><option value="rrif-first">RRIF/RRSP First</option><option value="tfsa-first">TFSA First</option><option value="nonreg-first">Non-Registered First</option></select>
             <div style={{fontSize:10,color:"#8899aa",lineHeight:1.7,padding:"8px 10px",background:"rgba(255,255,255,0.02)",borderRadius:7}}>
-              {r.withdrawOrder==="optimal"&&"Draws RRIF minimum + partial top-up, then Non-Reg (capital gains advantage), then TFSA. Preserves TFSA as long-term tax shelter."}
+              {r.withdrawOrder==="optimal"&&(<div style={{display:"flex",flexDirection:"column",gap:8}}>
+                <div style={{fontSize:11,color:"#D4AF37",fontWeight:600}}>Goal: Minimize lifetime tax · Maximize remaining estate</div>
+                <div style={{fontSize:10,color:"#8899aa",lineHeight:1.8}}>
+                  <strong style={{color:"#cbd5e1"}}>Step 1 — RRIF minimum only</strong> (mandatory by law, 100% taxable income — no choice but to take it)<br/>
+                  <strong style={{color:"#cbd5e1"}}>Step 2 — Non-Registered</strong> fills the income gap (only 50% of the accrued gain is taxable — far more tax-efficient than extra RRIF)<br/>
+                  <strong style={{color:"#cbd5e1"}}>Step 3 — TFSA as last resort</strong> (withdrawals are tax-free, and the balance grows tax-free and passes to heirs completely tax-free — most valuable account to preserve)<br/>
+                  <strong style={{color:"#cbd5e1"}}>Step 4 — Additional RRIF</strong> only if Non-Reg and TFSA are both exhausted and income is still short
+                </div>
+                <div style={{fontSize:10,color:"#4a5568",lineHeight:1.7,borderTop:"1px solid rgba(255,255,255,0.06)",paddingTop:7}}>
+                  Why this beats RRIF-First: By holding RRIF to its minimum, the RRIF balance stays manageable and future mandatory minimums stay smaller — reducing total taxable income across retirement. Each dollar from Non-Reg adds only 50¢ of taxable income vs. $1.00 from extra RRIF. Preserving TFSA longest maximizes its tax-free compounding and the tax-free inheritance it provides.
+                </div>
+              </div>)}
               {r.withdrawOrder==="rrif-first"&&"Maximizes RRIF first to reduce future estate tax. Best for large RRIF balances with no spouse rollover."}
               {r.withdrawOrder==="tfsa-first"&&"Draws TFSA before other accounts. Generally not tax-optimal but useful in specific estate planning contexts."}
               {r.withdrawOrder==="nonreg-first"&&"Draws Non-Reg first to realize capital gains early at lower rates. Effective when non-reg gains are large."}
@@ -512,3 +540,4 @@ export default function App(){
     </div>
   </div>)
 }
+
