@@ -196,7 +196,11 @@ export default function App(){
       const res=runMC({cv:s.currentValue,ac,th,br:blended,sd:s.stdDev/100,inf:s.inflation/100,ta:s.targetAmount});
       setResults(res);
       setProjData(buildPD({cv:s.currentValue,ac,th,br:blended,sd:s.stdDev/100,inf:s.inflation/100}));
-      const p50=res.p50,rrifBal=Math.round(p50*s.accountSplit.rrif/100),tfsaBal=Math.round(p50*s.accountSplit.tfsa/100),nrBal=Math.round(p50*s.accountSplit.nonReg/100);
+      const p50=res.p50;
+      // P50 is already in real (today's) dollars — apply split directly
+      const rrifBal=Math.round(p50*s.accountSplit.rrif/100);
+      const tfsaBal=Math.round(p50*s.accountSplit.tfsa/100);
+      const nrBal=Math.round(p50*s.accountSplit.nonReg/100);
       setR(prev=>({...prev,retirementAge:s.retirementAge,lifeExpectancy:Math.max(s.retirementAge+20,prev.lifeExpectancy),desiredMonthlyIncome:s.desiredMonthlyIncome,rrifBalance:rrifBal,tfsaBalance:tfsaBal,nonRegBalance:nrBal,nonRegACB:Math.round(nrBal*.65),portfolioReturn:parseFloat(((blended-s.inflation/100)*100).toFixed(2))}));
       setSimDriven(true);setRunning(false);setTab("results");
     },80);
@@ -341,7 +345,7 @@ export default function App(){
           <MC tipKey="worstScenario" label="Worst (P1)" value={fmt(results.worst)} sub="1% most pessimistic" color="#ef4444"/>
         </div>
         <div style={{...panel,borderColor:"rgba(212,175,55,0.25)"}}>
-          <div style={{fontSize:11,color:"#8899aa",marginBottom:10,fontWeight:600}}>P50 ({fmt(results.p50)}) × ACCOUNT SPLIT ({s.accountSplit.rrif}/{s.accountSplit.tfsa}/{s.accountSplit.nonReg}) → PRE-FILLED WITHDRAW TAB</div>
+          <div style={{fontSize:11,color:"#8899aa",marginBottom:10,fontWeight:600}}>P50 REAL {fmt(results.p50)} (TODAY'S $) × SPLIT {s.accountSplit.rrif}/{s.accountSplit.tfsa}/{s.accountSplit.nonReg} → WITHDRAW TAB BALANCES (ALL IN TODAY'S $)</div>
           <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr 1fr",gap:12}}>
             <MC label="RRIF/RRSP Balance" value={fmt(r.rrifBalance)} sub={`${s.accountSplit.rrif}% of P50 · 100% taxable`} color="#D4AF37"/>
             <MC label="TFSA Balance" value={fmt(r.tfsaBalance)} sub={`${s.accountSplit.tfsa}% of P50 · Tax-free`} color="#34d399"/>
@@ -359,7 +363,7 @@ export default function App(){
 
     {/* ══ INCOME ══ */}
     {tab==="income"&&(<div style={{display:"flex",flexDirection:"column",gap:18}}>
-      <SH title="Retirement Income Calculator" sub="Model income sources, government benefits, taxes, and net cash flow · Values are NOMINAL (not inflation-adjusted)"/>
+      <SH title="Retirement Income Calculator" sub="All values in TODAY'S dollars (real, inflation-adjusted) · CPP and OAS entered in today's dollars per your input · Tax brackets approximate (nominal thresholds applied to real income)"/>
       {simDriven&&<div className="syncbar">↑ Retirement Age and Income Target are driven from your Plan tab simulation. Adjust sliders below to customise without affecting the Plan.</div>}
       <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"280px 1fr",gap:18}}>
         <div style={{display:"flex",flexDirection:"column",gap:14}}>
@@ -412,8 +416,8 @@ export default function App(){
 
     {/* ══ WITHDRAW ══ */}
     {tab==="withdraw"&&(<div style={{display:"flex",flexDirection:"column",gap:18}}>
-      <SH title="Withdrawal Strategy Optimizer" sub="Tax-efficient decumulation factoring CPP, OAS clawback, RRIF minimums, and account location · Values are NOMINAL"/>
-      {simDriven&&<div className="syncbar">↑ Account balances, Retirement Age, and Income Target are pre-filled from your Plan simulation (P50 × account split). Adjust any slider to customise.</div>}
+      <SH title="Withdrawal Strategy Optimizer" sub="All values in TODAY'S dollars (real, inflation-adjusted) · Monte Carlo real return applied · Nominal Net Income column shows actual dollars received"/>
+      {simDriven&&<div className="syncbar">↑ Balances, Retirement Age, and Income Target are pre-filled from your Plan simulation (P50 in today's dollars × account split). All Withdraw tab values are in today's purchasing power. Adjust any slider to customise.</div>}
       <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"280px 1fr",gap:18}}>
         <div style={{display:"flex",flexDirection:"column",gap:14}}>
           <div style={panel}>
@@ -465,8 +469,8 @@ export default function App(){
           <div style={panel}>
             <div style={{fontFamily:"'DM Serif Display',serif",fontSize:16,color:"#e2e8f0",marginBottom:12}}>Year-by-Year Withdrawal Plan</div>
             <div style={{overflowX:"auto",maxHeight:300,overflowY:"auto"}}>
-              <table className="tbl"><thead><tr><th>Age</th><th>RRIF Bal</th><th>TFSA Bal</th><th>Non-Reg</th><th>CPP</th><th>OAS</th><th>RRIF W/D</th><th>TFSA W/D</th><th>NR W/D</th><th>Taxable</th><th>Tax</th><th>Eff%</th><th>Net Income</th></tr></thead>
-              <tbody>{wPlan.map(y=>(<tr key={y.age}><td style={{color:"#D4AF37",fontWeight:500}}>{y.age}</td><td>{fmt(y.rrifBal)}</td><td style={{color:"#34d399"}}>{fmt(y.tfsaBal)}</td><td style={{color:"#4a90d9"}}>{fmt(y.nonRegBal)}</td><td>{fmt(y.cpp)}</td><td>{fmt(y.oasNet)}</td><td>{fmt(y.rrifW)}</td><td style={{color:"#34d399"}}>{fmt(y.tfsaW)}</td><td style={{color:"#4a90d9"}}>{fmt(y.nrW)}</td><td>{fmt(y.taxableIncome)}</td><td style={{color:"#ef4444"}}>{fmt(y.tax)}</td><td style={{color:y.effectiveRate>.35?"#ef4444":y.effectiveRate>.25?"#f59e0b":"#22c55e"}}>{fmtP(y.effectiveRate)}</td><td style={{color:"#22c55e",fontWeight:500}}>{fmt(y.netIncome)}</td></tr>))}</tbody></table>
+              <table className="tbl"><thead><tr><th>Age</th><th>RRIF Bal</th><th>TFSA Bal</th><th>Non-Reg</th><th>CPP</th><th>OAS</th><th>RRIF W/D</th><th>TFSA W/D</th><th>NR W/D</th><th>Taxable</th><th>Tax</th><th>Eff%</th><th>Net (Real $)</th><th style={{color:"#a78bfa"}}>Net (Nominal $)</th></tr></thead>
+              <tbody>{wPlan.map(y=>{const nomFactor=Math.pow(1+s.inflation/100,y.age-r.retirementAge);return(<tr key={y.age}><td style={{color:"#D4AF37",fontWeight:500}}>{y.age}</td><td>{fmt(y.rrifBal)}</td><td style={{color:"#34d399"}}>{fmt(y.tfsaBal)}</td><td style={{color:"#4a90d9"}}>{fmt(y.nonRegBal)}</td><td>{fmt(y.cpp)}</td><td>{fmt(y.oasNet)}</td><td>{fmt(y.rrifW)}</td><td style={{color:"#34d399"}}>{fmt(y.tfsaW)}</td><td style={{color:"#4a90d9"}}>{fmt(y.nrW)}</td><td>{fmt(y.taxableIncome)}</td><td style={{color:"#ef4444"}}>{fmt(y.tax)}</td><td style={{color:y.effectiveRate>.35?"#ef4444":y.effectiveRate>.25?"#f59e0b":"#22c55e"}}>{fmtP(y.effectiveRate)}</td><td style={{color:"#22c55e",fontWeight:500}}>{fmt(y.netIncome)}</td><td style={{color:"#a78bfa",fontWeight:500}}>{fmt(y.netIncome*nomFactor)}</td></tr>)})}</tbody></table>
             </div>
           </div>
         </div>
@@ -475,7 +479,7 @@ export default function App(){
 
     {/* ══ ESTATE ══ */}
     {tab==="estate"&&(<div style={{display:"flex",flexDirection:"column",gap:18}}>
-      <SH title={`Tax at Death & Estate Analysis — ${r.province}`} sub="Estimated tax on each account type based on deemed disposition rules · Values are NOMINAL"/>
+      <SH title={`Tax at Death & Estate Analysis — ${r.province}`} sub="All values in TODAY'S dollars (real, inflation-adjusted) · Estate tax calculated on real balances using approximate nominal brackets"/>
       {simDriven&&<div className="syncbar">↑ Account balances are driven from your Plan simulation (P50 × account split). Adjust in the Withdraw tab to update estate projections.</div>}
       <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr 1fr",gap:14}}>
         {[{key:"RRSP / RRIF",color:"rgba(212,175,55,0.35)",tc:"#D4AF37",gross:estate.rrifGross,tax:estate.rrifTax,net:estate.rrifNet,rate:estate.rrifRate,desc:"Entire balance deemed received as income at death — fully taxable at the highest marginal rate. Rolls tax-free to a surviving spouse's RRSP/RRIF.",extra:null},
@@ -540,4 +544,5 @@ export default function App(){
     </div>
   </div>)
 }
+
 
