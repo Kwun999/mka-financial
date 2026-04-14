@@ -159,6 +159,8 @@ export default function App(){
   const[running,setRunning]=useState(false);
   const[activeScenario,setActiveScenario]=useState(null);
   const[simDriven,setSimDriven]=useState(false);
+  const[isMobile,setIsMobile]=useState(()=>window.innerWidth<768);
+  useEffect(()=>{const h=()=>setIsMobile(window.innerWidth<768);window.addEventListener('resize',h);return()=>window.removeEventListener('resize',h)},[]);
   useEffect(()=>{saveAll({plan:s,ret:r})},[s,r]);
 
   const blended=(s.allocation.equity*s.assetReturns.equity+s.allocation.bonds*s.assetReturns.bonds+s.allocation.cash*s.assetReturns.cash)/(s.allocation.equity+s.allocation.bonds+s.allocation.cash)/100;
@@ -207,22 +209,22 @@ export default function App(){
   const TABS=[{id:"plan",label:"⚙ Plan"},{id:"results",label:"📈 Results"},{id:"income",label:"💰 Income"},{id:"withdraw",label:"📤 Withdraw"},{id:"estate",label:"🏛 Estate"},{id:"scenarios",label:`📁 Saved (${scenarios.length})`},{id:"faq",label:"❓ FAQ"}];
 
   return(<div style={{minHeight:"100vh",background:"#060d1a",fontFamily:"'Figtree',sans-serif",color:"#cbd5e1"}}>
-    <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Figtree:wght@300;400;500;600&display=swap');*{box-sizing:border-box;margin:0;padding:0}input[type=range]{-webkit-appearance:none;height:4px;background:#1e293b;border-radius:2px;outline:none}input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:#D4AF37;cursor:pointer;box-shadow:0 0 8px rgba(212,175,55,0.4)}input[type=text],input[type=number],select{background:rgba(255,255,255,0.05);border:1px solid rgba(212,175,55,0.2);border-radius:8px;color:#e2e8f0;padding:7px 11px;width:100%;font-size:12px;outline:none;font-family:inherit}input[type=text]:focus,input[type=number]:focus,select:focus{border-color:rgba(212,175,55,0.6)}select option{background:#0f172a;color:#e2e8f0}button{cursor:pointer;font-family:inherit}::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#0f172a}::-webkit-scrollbar-thumb{background:#D4AF37;border-radius:2px}.tab-btn{padding:6px 14px;border:none;border-radius:8px;font-size:11px;font-weight:500;transition:all 0.2s;white-space:nowrap}.tab-btn.active{background:#D4AF37;color:#060d1a}.tab-btn:not(.active){background:transparent;color:#8899aa;border:1px solid rgba(212,175,55,0.2)}.tab-btn:not(.active):hover{border-color:#D4AF37;color:#D4AF37}.btn-gold{background:linear-gradient(135deg,#D4AF37,#f0d060);color:#060d1a;border:none;border-radius:10px;padding:10px 22px;font-size:13px;font-weight:600;transition:all 0.2s;white-space:nowrap}.btn-gold:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(212,175,55,0.35)}.btn-ghost{background:transparent;color:#8899aa;border:1px solid rgba(212,175,55,0.2);border-radius:8px;padding:7px 14px;font-size:11px;transition:all 0.2s;white-space:nowrap}.btn-ghost:hover{border-color:#D4AF37;color:#D4AF37}.preset-chip{padding:5px 11px;border:1px solid rgba(212,175,55,0.2);border-radius:20px;background:transparent;color:#8899aa;font-size:11px;transition:all 0.2s}.preset-chip:hover{border-color:#D4AF37;color:#D4AF37;background:rgba(212,175,55,0.05)}.tbl{width:100%;border-collapse:collapse;font-size:11px}.tbl th{text-align:left;padding:7px 9px;color:#8899aa;text-transform:uppercase;font-weight:500;border-bottom:1px solid rgba(212,175,55,0.15);font-size:9px;white-space:nowrap}.tbl td{padding:6px 9px;border-bottom:1px solid rgba(255,255,255,0.04);color:#cbd5e1;white-space:nowrap}.tbl tr:hover td{background:rgba(212,175,55,0.03)}.warn{padding:10px 13px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:8px;font-size:11px;color:#f59e0b;line-height:1.6}.tipbox{padding:10px 13px;background:rgba(52,211,153,0.06);border:1px solid rgba(52,211,153,0.2);border-radius:8px;font-size:11px;color:#34d399;line-height:1.6}.syncbar{padding:9px 14px;background:rgba(52,211,153,0.06);border:1px solid rgba(52,211,153,0.18);border-radius:9px;font-size:11px;color:#34d399;display:flex;align-items:center;gap:8px}@keyframes tipFade{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}@media print{.no-print{display:none!important}}`}</style>
+    <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Figtree:wght@300;400;500;600&display=swap');*{box-sizing:border-box;margin:0;padding:0}input[type=range]{-webkit-appearance:none;height:4px;background:#1e293b;border-radius:2px;outline:none}input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:#D4AF37;cursor:pointer;box-shadow:0 0 8px rgba(212,175,55,0.4)}input[type=text],input[type=number],select{background:rgba(255,255,255,0.05);border:1px solid rgba(212,175,55,0.2);border-radius:8px;color:#e2e8f0;padding:7px 11px;width:100%;font-size:12px;outline:none;font-family:inherit}input[type=text]:focus,input[type=number]:focus,select:focus{border-color:rgba(212,175,55,0.6)}select option{background:#0f172a;color:#e2e8f0}button{cursor:pointer;font-family:inherit}::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#0f172a}::-webkit-scrollbar-thumb{background:#D4AF37;border-radius:2px}.tab-btn{padding:6px 14px;border:none;border-radius:8px;font-size:11px;font-weight:500;transition:all 0.2s;white-space:nowrap}.tab-btn.active{background:#D4AF37;color:#060d1a}.tab-btn:not(.active){background:transparent;color:#8899aa;border:1px solid rgba(212,175,55,0.2)}.tab-btn:not(.active):hover{border-color:#D4AF37;color:#D4AF37}.btn-gold{background:linear-gradient(135deg,#D4AF37,#f0d060);color:#060d1a;border:none;border-radius:10px;padding:10px 22px;font-size:13px;font-weight:600;transition:all 0.2s;white-space:nowrap}.btn-gold:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(212,175,55,0.35)}.btn-ghost{background:transparent;color:#8899aa;border:1px solid rgba(212,175,55,0.2);border-radius:8px;padding:7px 14px;font-size:11px;transition:all 0.2s;white-space:nowrap}.btn-ghost:hover{border-color:#D4AF37;color:#D4AF37}.preset-chip{padding:5px 11px;border:1px solid rgba(212,175,55,0.2);border-radius:20px;background:transparent;color:#8899aa;font-size:11px;transition:all 0.2s}.preset-chip:hover{border-color:#D4AF37;color:#D4AF37;background:rgba(212,175,55,0.05)}.tbl{width:100%;border-collapse:collapse;font-size:11px}.tbl th{text-align:left;padding:7px 9px;color:#8899aa;text-transform:uppercase;font-weight:500;border-bottom:1px solid rgba(212,175,55,0.15);font-size:9px;white-space:nowrap}.tbl td{padding:6px 9px;border-bottom:1px solid rgba(255,255,255,0.04);color:#cbd5e1;white-space:nowrap}.tbl tr:hover td{background:rgba(212,175,55,0.03)}.warn{padding:10px 13px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:8px;font-size:11px;color:#f59e0b;line-height:1.6}.tipbox{padding:10px 13px;background:rgba(52,211,153,0.06);border:1px solid rgba(52,211,153,0.2);border-radius:8px;font-size:11px;color:#34d399;line-height:1.6}.syncbar{padding:9px 14px;background:rgba(52,211,153,0.06);border:1px solid rgba(52,211,153,0.18);border-radius:9px;font-size:11px;color:#34d399;display:flex;align-items:center;gap:8px}@keyframes tipFade{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}@media print{.no-print{display:none!important}}@media(max-width:767px){.mob-col{grid-template-columns:1fr!important}.mob-col2{grid-template-columns:1fr 1fr!important}.mob-single{grid-template-columns:1fr!important;}.tab-btn{padding:5px 8px;font-size:10px}.tbl{font-size:10px}.tbl th,.tbl td{padding:5px 6px}}`}</style>
 
     {/* HEADER */}
-    <div style={{borderBottom:"1px solid rgba(212,175,55,0.12)",padding:"12px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10}} className="no-print">
+    <div style={{borderBottom:"1px solid rgba(212,175,55,0.12)",padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8}} className="no-print">
       <div style={{display:"flex",alignItems:"center",gap:10}}>
         <svg width={28} height={28} viewBox="0 0 32 32"><polygon points="16,2 28,8 28,24 16,30 4,24 4,8" fill="none" stroke="#D4AF37" strokeWidth={1.5}/><polygon points="16,7 23,11 23,21 16,25 9,21 9,11" fill="rgba(212,175,55,0.12)" stroke="#D4AF37" strokeWidth={0.8}/><line x1={16} y1={7} x2={16} y2={25} stroke="#D4AF37" strokeWidth={0.8} strokeOpacity={0.4}/><line x1={9} y1={11} x2={23} y2={21} stroke="#D4AF37" strokeWidth={0.8} strokeOpacity={0.4}/><line x1={23} y1={11} x2={9} y2={21} stroke="#D4AF37" strokeWidth={0.8} strokeOpacity={0.4}/></svg>
         <div><div style={{fontFamily:"'DM Serif Display',serif",fontSize:17,color:"#D4AF37"}}>MKA Financial</div><div style={{fontSize:8,letterSpacing:"0.15em",color:"#4a5568",textTransform:"uppercase"}}>Financial Planning Suite</div></div>
       </div>
-      <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>{TABS.map(t=><button key={t.id} className={`tab-btn ${tab===t.id?"active":""}`} onClick={()=>setTab(t.id)}>{t.label}</button>)}</div>
+      <div style={{display:"flex",gap:4,flexWrap:"nowrap",overflowX:"auto",WebkitOverflowScrolling:"touch",paddingBottom:2}}>{TABS.map(t=><button key={t.id} className={`tab-btn ${tab===t.id?"active":""}`} onClick={()=>setTab(t.id)}>{t.label}</button>)}</div>
       <div style={{display:"flex",gap:7}} className="no-print"><button className="btn-ghost" onClick={exportCSV}>⬇ Excel</button><button className="btn-ghost" onClick={()=>window.print()}>🖨 PDF</button></div>
     </div>
 
-    <div style={{padding:"20px 24px",maxWidth:1440,margin:"0 auto"}}>
+    <div style={{padding:isMobile?"12px 12px":"20px 24px",maxWidth:1440,margin:"0 auto"}}>
 
     {/* ══ PLAN ══ */}
-    {tab==="plan"&&(<div style={{display:"grid",gridTemplateColumns:"310px 1fr",gap:20}}>
+    {tab==="plan"&&(<div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"310px 1fr",gap:16}}>
       <div style={{display:"flex",flexDirection:"column",gap:16}}>
         <div style={panel}>
           <div style={{fontSize:10,letterSpacing:"0.12em",color:"#8899aa",textTransform:"uppercase",marginBottom:11}}>Goal Presets</div>
@@ -247,7 +249,7 @@ export default function App(){
       <div style={{display:"flex",flexDirection:"column",gap:16}}>
         <div style={panel}>
           <div style={{fontSize:10,letterSpacing:"0.12em",color:"#8899aa",textTransform:"uppercase",marginBottom:13}}>Risk Profile &amp; Asset Allocation</div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:14}}>
+          <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(4,1fr)",gap:8,marginBottom:14}}>
             {Object.entries(RISK).map(([key,p])=>{const isA=s.riskProfile===key;return(<button key={key} onClick={()=>applyRisk(key)} style={{padding:"11px 8px",borderRadius:10,border:`1px solid ${isA?p.color:"rgba(255,255,255,0.08)"}`,background:isA?`${p.color}18`:"rgba(255,255,255,0.02)",cursor:"pointer",transition:"all 0.2s",textAlign:"center"}}><div style={{fontSize:17,marginBottom:4}}>{p.icon}</div><div style={{fontSize:10,fontWeight:600,color:isA?p.color:"#8899aa"}}>{p.label}</div><div style={{fontSize:9,color:"#4a5568",marginTop:3}}>σ = {p.stdDev}%</div></button>)})}
           </div>
           <div style={{fontSize:11,color:"#667788",background:"rgba(255,255,255,0.02)",borderRadius:7,padding:"8px 11px",marginBottom:14,lineHeight:1.6}}>
@@ -255,7 +257,7 @@ export default function App(){
           </div>
           <AB alloc={s.allocation}/>
           <div style={{display:"flex",gap:12,fontSize:10,color:"#4a5568",marginBottom:16}}><span style={{color:"#D4AF37"}}>● Equity {s.allocation.equity}%</span><span style={{color:"#4a90d9"}}>● Bonds {s.allocation.bonds}%</span><span style={{color:"#34d399"}}>● Cash {s.allocation.cash}%</span></div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:16}}>
+          <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr 1fr",gap:16}}>
             {[{key:"equity",label:"Equity",color:"#D4AF37"},{key:"bonds",label:"Fixed Income",color:"#4a90d9"},{key:"cash",label:"Cash/Equiv.",color:"#34d399"}].map(({key,label,color})=>(<div key={key}><div style={{fontSize:11,color,marginBottom:8,fontWeight:500}}>{label}</div><SR label="Allocation %" value={s.allocation[key]} min={0} max={100} step={5} onChange={updAlloc(key)} format={v=>`${v}%`}/><SR label="Expected Return" value={s.assetReturns[key]} min={0} max={20} step={0.25} onChange={updRet(key)} format={v=>`${v.toFixed(2)}%`}/></div>))}
           </div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginTop:6,paddingTop:16,borderTop:"1px solid rgba(255,255,255,0.06)"}}>
@@ -265,7 +267,7 @@ export default function App(){
         </div>
         <div style={panel}>
           <div style={{fontSize:10,letterSpacing:"0.12em",color:"#8899aa",textTransform:"uppercase",marginBottom:13}}>Volatility &amp; Macro</div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
+          <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:20}}>
             <div>
               <SR label="Portfolio Volatility (Std Dev)" value={s.stdDev} min={2} max={30} step={0.5} onChange={updSD} format={v=>`${v.toFixed(1)}%`}/>
               <div style={{fontSize:10,color:"#4a5568",lineHeight:1.8,padding:"8px 10px",background:"rgba(255,255,255,0.02)",borderRadius:7,marginTop:-6}}>
@@ -282,7 +284,7 @@ export default function App(){
         <div style={panel}>
           <div style={{fontSize:10,letterSpacing:"0.12em",color:"#8899aa",textTransform:"uppercase",marginBottom:5}}>Account Split at Retirement → drives Withdraw &amp; Estate tabs</div>
           <div style={{fontSize:11,color:"#4a5568",marginBottom:14,lineHeight:1.65}}>How will your retirement portfolio be distributed across account types? After the simulation, <strong style={{color:"#D4AF37"}}>P50 × these %</strong> pre-fills the Withdraw tab account balances.</div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:16}}>
+          <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr 1fr",gap:16}}>
             {[{k:"rrif",label:"RRSP / RRIF",color:"#D4AF37",note:"100% taxable on withdrawal"},{k:"tfsa",label:"TFSA",color:"#34d399",note:"Completely tax-free"},{k:"nonReg",label:"Non-Registered",color:"#4a90d9",note:"Capital gains — 50% inclusion"}].map(({k,label,color,note})=>(<div key={k}><div style={{fontSize:10,color,fontWeight:600,marginBottom:6}}>{label}</div><SR label="" value={s.accountSplit[k]} min={0} max={100} step={5} onChange={updSplit(k)} format={v=>`${v}%`}/><div style={{fontSize:9,color:"#4a5568"}}>{note}</div></div>))}
           </div>
           <div style={{display:"flex",height:8,borderRadius:4,overflow:"hidden",marginTop:10}}><div style={{width:`${(s.accountSplit.rrif/Math.max(splitTotal,1))*100}%`,background:"#D4AF37"}}/><div style={{width:`${(s.accountSplit.tfsa/Math.max(splitTotal,1))*100}%`,background:"#34d399"}}/><div style={{width:`${(s.accountSplit.nonReg/Math.max(splitTotal,1))*100}%`,background:"#4a90d9"}}/></div>
@@ -300,7 +302,7 @@ export default function App(){
       <div style={{display:"flex",flexDirection:"column",gap:18}}>
         <div className="syncbar">✓ Simulation complete — Income, Withdraw, and Estate tabs have been updated from these results.<button className="btn-ghost" style={{marginLeft:"auto",fontSize:10}} onClick={()=>setTab("income")}>View Income →</button></div>
         <div style={{fontSize:11,color:"#4a5568",padding:"7px 12px",background:"rgba(212,175,55,0.04)",borderRadius:8,border:"1px solid rgba(212,175,55,0.1)"}}>💡 Hover any metric card for <strong style={{color:"#D4AF37"}}>1.5 seconds</strong> to see a full explanation and how it connects to the rest of the plan.</div>
-        <div style={{display:"grid",gridTemplateColumns:"180px 1fr 1fr 1fr 1fr",gap:12,alignItems:"stretch"}}>
+        <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"180px 1fr 1fr 1fr 1fr",gap:12,alignItems:"stretch"}}>
           <div style={{...panel,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}><SG rate={results.successRate}/></div>
           <MC tipKey="p50" label="Median (P50)" value={fmt(results.p50)} sub={`Target: ${fmt(s.targetAmount)}`} color={results.p50>=s.targetAmount?"#22c55e":"#ef4444"} big/>
           <MC tipKey="p90" label="Optimistic (P90)" value={fmt(results.p90)} sub="Top 10% of outcomes" color="#D4AF37" big/>
@@ -311,7 +313,7 @@ export default function App(){
           <div style={{fontFamily:"'DM Serif Display',serif",fontSize:17,color:"#e2e8f0",marginBottom:14}}>{s.goalName} — Portfolio Projection · Inflation-Adjusted (Real Dollars)</div>
           <ResponsiveContainer width="100%" height={300}><AreaChart data={projData} margin={{top:8,right:18,left:8,bottom:0}}><defs><linearGradient id="g90" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#D4AF37" stopOpacity={0.15}/><stop offset="100%" stopColor="#D4AF37" stopOpacity={0.01}/></linearGradient><linearGradient id="g50" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#4a90d9" stopOpacity={0.2}/><stop offset="100%" stopColor="#4a90d9" stopOpacity={0.01}/></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/><XAxis dataKey="year" stroke="#334155" tick={{fill:"#4a5568",fontSize:10}}/><YAxis stroke="#334155" tick={{fill:"#4a5568",fontSize:10}} tickFormatter={v=>fmt(v)} width={65}/><Tooltip content={<CT/>}/><Area type="monotone" dataKey="p90" name="P90 (Optimistic)" stroke="#D4AF37" fill="url(#g90)" strokeWidth={1.5} dot={false}/><Area type="monotone" dataKey="p50" name="P50 (Median)" stroke="#4a90d9" fill="url(#g50)" strokeWidth={2} dot={false}/><Area type="monotone" dataKey="p25" name="P25" stroke="#94a3b8" fill="none" strokeWidth={1} strokeDasharray="4 4" dot={false}/><Area type="monotone" dataKey="p10" name="P10 (Pessimistic)" stroke="#ef4444" fill="none" strokeWidth={1.5} dot={false}/><ReferenceLine y={s.targetAmount} stroke="#22c55e" strokeDasharray="6 4" label={{value:`Target ${fmt(s.targetAmount)}`,position:"right",fill:"#22c55e",fontSize:10}}/></AreaChart></ResponsiveContainer>
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
+        <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(4,1fr)",gap:12}}>
           <MC tipKey="monthlyIncome" label="Monthly Income (4% Rule)" value={swr?fmt(swr):"—"} sub={`Income Target: ${fmt(s.desiredMonthlyIncome)}/mo`}/>
           <MC tipKey="annualIncome" label="Annual Income (4%)" value={results.p50?fmt(results.p50*.04):"—"} sub="Sustainable withdrawal"/>
           <MC tipKey="totalContrib" label="Total Contributions" value={fmt(s.currentValue+ac*th)} sub={`$${(ac/1000).toFixed(0)}K/yr × ${th} yrs`} color="#cbd5e1"/>
@@ -323,7 +325,7 @@ export default function App(){
         </div>
         <div style={{...panel,borderColor:"rgba(212,175,55,0.25)"}}>
           <div style={{fontSize:11,color:"#8899aa",marginBottom:10,fontWeight:600}}>P50 ({fmt(results.p50)}) × ACCOUNT SPLIT ({s.accountSplit.rrif}/{s.accountSplit.tfsa}/{s.accountSplit.nonReg}) → PRE-FILLED WITHDRAW TAB</div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
+          <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr 1fr",gap:12}}>
             <MC label="RRIF/RRSP Balance" value={fmt(r.rrifBalance)} sub={`${s.accountSplit.rrif}% of P50 · 100% taxable`} color="#D4AF37"/>
             <MC label="TFSA Balance" value={fmt(r.tfsaBalance)} sub={`${s.accountSplit.tfsa}% of P50 · Tax-free`} color="#34d399"/>
             <MC label="Non-Reg Balance" value={fmt(r.nonRegBalance)} sub={`${s.accountSplit.nonReg}% of P50 · Capital gains`} color="#4a90d9"/>
@@ -342,7 +344,7 @@ export default function App(){
     {tab==="income"&&(<div style={{display:"flex",flexDirection:"column",gap:18}}>
       <SH title="Retirement Income Calculator" sub="Model income sources, government benefits, taxes, and net cash flow · Values are NOMINAL (not inflation-adjusted)"/>
       {simDriven&&<div className="syncbar">↑ Retirement Age and Income Target are driven from your Plan tab simulation. Adjust sliders below to customise without affecting the Plan.</div>}
-      <div style={{display:"grid",gridTemplateColumns:"280px 1fr",gap:18}}>
+      <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"280px 1fr",gap:18}}>
         <div style={{display:"flex",flexDirection:"column",gap:14}}>
           <div style={panel}>
             <div style={{fontSize:10,letterSpacing:"0.1em",color:"#8899aa",textTransform:"uppercase",marginBottom:12}}>Province &amp; Profile</div>
@@ -362,7 +364,7 @@ export default function App(){
           </div>
         </div>
         <div style={{display:"flex",flexDirection:"column",gap:14}}>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10}}>
+          <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(3,1fr)",gap:10}}>
             <MC tipKey="cppAnnual" label="CPP Annual" value={fmt(retTax.cppA)} sub={fmt(r.cppMonthly)+"/month"} color="#D4AF37"/>
             <MC tipKey="oasNet" label="OAS Annual (Net)" value={fmt(retTax.oN)} sub={retTax.oasClawback>0?`⚠ Clawback: ${fmt(retTax.oasClawback)}`:"No clawback"} color={retTax.oasClawback>0?"#f59e0b":"#34d399"}/>
             <MC tipKey="rrifMin" label="RRIF Minimum" value={fmt(retTax.rrifMinA)} sub={`Age ${r.retirementAge} · ${(getRRIFRate(r.retirementAge)*100).toFixed(2)}% rate`} color="#4a90d9"/>
@@ -372,7 +374,7 @@ export default function App(){
           </div>
           <div style={{...panel,background:"rgba(212,175,55,0.04)",borderColor:"rgba(212,175,55,0.25)"}}>
             <div style={{fontFamily:"'DM Serif Display',serif",fontSize:16,color:"#e2e8f0",marginBottom:12}}>Income Gap Analysis at Age {r.retirementAge}</div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:14}}>
+            <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr 1fr",gap:10,marginBottom:14}}>
               <MC label="Income Target" value={fmt(retTax.desired)} sub={fmt(r.desiredMonthlyIncome)+"/mo"} color="#e2e8f0"/>
               <MC label="Guaranteed (CPP+OAS)" value={fmt(retTax.cppA+retTax.oN)} sub="Before tax" color="#34d399"/>
               <MC tipKey="gapToFill" label="Gap to Fill" value={fmt(retTax.gap)} sub="From investment accounts" color={retTax.gap>0?"#f59e0b":"#22c55e"}/>
@@ -382,7 +384,7 @@ export default function App(){
           </div>
           <div style={panel}>
             <div style={{fontFamily:"'DM Serif Display',serif",fontSize:16,color:"#e2e8f0",marginBottom:12}}>Province Comparison at {fmt(retTax.desired)} Annual Income</div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:7}}>
+            <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,1fr)":"repeat(5,1fr)",gap:7}}>
               {Object.keys(PROV).map(pName=>{const t=calcTax(retTax.desired,pName),isSel=pName===r.province;return(<div key={pName} onClick={()=>updR("province")(pName)} style={{padding:"10px 7px",borderRadius:9,border:`1px solid ${isSel?"#D4AF37":"rgba(212,175,55,0.12)"}`,background:isSel?"rgba(212,175,55,0.08)":"transparent",cursor:"pointer",transition:"all 0.2s",textAlign:"center"}}><div style={{fontSize:9,color:"#8899aa",marginBottom:3}}>{pName.split(" ")[0]}</div><div style={{fontSize:13,fontFamily:"'DM Serif Display',serif",color:isSel?"#D4AF37":"#94a3b8"}}>{fmtP(t.effective)}</div><div style={{fontSize:9,color:"#4a5568",marginTop:2}}>{fmt(t.total)} tax</div></div>)})}
             </div>
             <div style={{fontSize:10,color:"#4a5568",marginTop:10}}>Click a province to switch · 2024 combined federal + provincial rates</div>
@@ -395,7 +397,7 @@ export default function App(){
     {tab==="withdraw"&&(<div style={{display:"flex",flexDirection:"column",gap:18}}>
       <SH title="Withdrawal Strategy Optimizer" sub="Tax-efficient decumulation factoring CPP, OAS clawback, RRIF minimums, and account location · Values are NOMINAL"/>
       {simDriven&&<div className="syncbar">↑ Account balances, Retirement Age, and Income Target are pre-filled from your Plan simulation (P50 × account split). Adjust any slider to customise.</div>}
-      <div style={{display:"grid",gridTemplateColumns:"280px 1fr",gap:18}}>
+      <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"280px 1fr",gap:18}}>
         <div style={{display:"flex",flexDirection:"column",gap:14}}>
           <div style={panel}>
             <div style={{fontSize:10,letterSpacing:"0.1em",color:"#8899aa",textTransform:"uppercase",marginBottom:12}}>Account Balances at Retirement</div>
@@ -422,7 +424,7 @@ export default function App(){
           </div>
         </div>
         <div style={{display:"flex",flexDirection:"column",gap:14}}>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
+          <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(4,1fr)",gap:10}}>
             <MC tipKey="retYears" label="Retirement Duration" value={`${r.lifeExpectancy-r.retirementAge} yrs`} sub={`Age ${r.retirementAge}–${r.lifeExpectancy}`}/>
             <MC tipKey="avgEffRate" label="Avg Effective Tax Rate" value={fmtP(wPlan.reduce((s,y)=>s+y.effectiveRate,0)/Math.max(1,wPlan.length))} sub="Over retirement" color="#f59e0b"/>
             <MC tipKey="totalTaxRet" label="Total Tax in Retirement" value={fmt(wPlan.reduce((s,y)=>s+y.tax,0))} sub="Lifetime tax payable" color="#ef4444"/>
@@ -447,7 +449,7 @@ export default function App(){
     {tab==="estate"&&(<div style={{display:"flex",flexDirection:"column",gap:18}}>
       <SH title={`Tax at Death & Estate Analysis — ${r.province}`} sub="Estimated tax on each account type based on deemed disposition rules · Values are NOMINAL"/>
       {simDriven&&<div className="syncbar">↑ Account balances are driven from your Plan simulation (P50 × account split). Adjust in the Withdraw tab to update estate projections.</div>}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14}}>
+      <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr 1fr",gap:14}}>
         {[{key:"RRSP / RRIF",color:"rgba(212,175,55,0.35)",tc:"#D4AF37",gross:estate.rrifGross,tax:estate.rrifTax,net:estate.rrifNet,rate:estate.rrifRate,desc:"Entire balance deemed received as income at death — fully taxable at the highest marginal rate. Rolls tax-free to a surviving spouse's RRSP/RRIF.",extra:null},
           {key:"TFSA",color:"rgba(52,211,153,0.35)",tc:"#34d399",gross:estate.tfsaGross,tax:0,net:estate.tfsaNet,rate:0,desc:"Passes to successor holder (spouse) or beneficiary entirely tax-free. No deemed disposition. The most estate-efficient account in Canada.",extra:null},
           {key:"Non-Registered",color:"rgba(74,144,217,0.35)",tc:"#4a90d9",gross:estate.nonRegGross,tax:estate.nonRegTax,net:estate.nonRegNet,rate:estate.nonRegGross>0?estate.nonRegTax/estate.nonRegGross:0,desc:"Deemed disposed at FMV. Only the accrued gain above ACB is taxable at 50% inclusion rate — more tax-efficient than RRIF at death.",extra:fmt(estate.nonRegGain)}
@@ -455,7 +457,7 @@ export default function App(){
       </div>
       <div style={{...panel,background:"rgba(212,175,55,0.04)",borderColor:"rgba(212,175,55,0.3)"}}>
         <div style={{fontFamily:"'DM Serif Display',serif",fontSize:18,color:"#e2e8f0",marginBottom:14}}>Total Estate Summary</div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:18}}>
+        <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(4,1fr)",gap:12,marginBottom:18}}>
           <MC tipKey="estateGross"   label="Total Gross Estate"  value={fmt(estate.totalGross)}  sub="All accounts before tax" color="#e2e8f0" big/>
           <MC tipKey="estateTax"     label="Total Tax at Death"  value={fmt(estate.totalTax)}    sub={`${estate.totalGross>0?fmtP(estate.totalTax/estate.totalGross):"—"} of gross estate`} color="#ef4444" big/>
           <MC tipKey="estateNet"     label="Net Estate to Heirs" value={fmt(estate.totalNet)}    sub="After all taxes" color="#22c55e" big/>
