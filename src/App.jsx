@@ -37,18 +37,15 @@ for(let age=r.retirementAge;age<=r.lifeExpectancy;age++){rrif*=(1+retRate);tfsa*
 if(custom&&(custom.rrif||custom.tfsa||custom.nonReg)){rrifW=Math.min(custom.rrif||0,rrif);tfsaW=Math.min(custom.tfsa||0,tfsa);nrW=Math.min(custom.nonReg||0,nonReg)}
 else{
   if(r.withdrawOrder==="optimal"){
-    // True tax-minimizing order:
-    // 1. RRIF minimum only (mandatory — 100% taxable, unavoidable)
-    // 2. Non-Reg to fill gap (only 50% of gain is taxable — more efficient than extra RRIF)
-    // 3. TFSA as absolute last resort (tax-free growth + tax-free to heirs — preserve longest)
-    // 4. Additional RRIF only if Non-Reg + TFSA cannot cover the full gap
-    rrifW=Math.min(rrifMin,rrif);
+    // Estate-maximizing order:
+    // RRIF: worst estate asset (~50% taxed at death on terminal return) — draw down now at lower retirement rates
+    // Non-Reg: intermediate (~25% effective on gains at death) — draw second
+    // TFSA: best estate asset ($0 tax at death, $1 in TFSA = $1 to heirs) — preserve absolutely last
+    rrifW=Math.min(Math.max(rrifMin,gap),rrif);
     const rem1=Math.max(0,gap-rrifW);
     nrW=Math.min(rem1,nonReg);
     const rem2=Math.max(0,rem1-nrW);
     tfsaW=Math.min(rem2,tfsa);
-    const stillShort=Math.max(0,rem2-tfsaW);
-    rrifW=Math.min(rrifW+stillShort,rrif);
   }else if(r.withdrawOrder==="tfsa-first"){const rem=Math.max(0,gap-Math.min(rrifMin,rrif));rrifW=Math.min(rrifMin,rrif);tfsaW=Math.min(rem,tfsa);nrW=Math.min(Math.max(0,gap-rrifW-tfsaW),nonReg);const s2=Math.max(0,gap-rrifW-tfsaW-nrW);rrifW=Math.min(rrifW+s2,rrif);}
   else if(r.withdrawOrder==="nonreg-first"){const rem=Math.max(0,gap-Math.min(rrifMin,rrif));rrifW=Math.min(rrifMin,rrif);nrW=Math.min(rem,nonReg);tfsaW=Math.min(Math.max(0,gap-rrifW-nrW),tfsa);const s2=Math.max(0,gap-rrifW-nrW-tfsaW);rrifW=Math.min(rrifW+s2,rrif);}
   else{rrifW=Math.min(Math.max(rrifMin,gap),rrif);nrW=Math.min(Math.max(0,gap-rrifW),nonReg);tfsaW=Math.min(Math.max(0,gap-rrifW-nrW),tfsa);}
@@ -185,7 +182,13 @@ export default function App(){
   const ac=s.monthlyContribution*12;
   const splitTotal=s.accountSplit.rrif+s.accountSplit.tfsa+s.accountSplit.nonReg;
   const wPlan=useMemo(()=>buildWP(r),[r]);
-  const estate=useMemo(()=>calcEstate(r),[r]);
+  const estate=useMemo(()=>{
+    const last=wPlan[wPlan.length-1];
+    if(!last)return calcEstate(r);
+    // ACB is consumed proportionally as Non-Reg is drawn down
+    const finalACB=r.nonRegBalance>0?r.nonRegACB*(last.nonRegBal/r.nonRegBalance):0;
+    return calcEstate({...r,rrifBalance:last.rrifBal,tfsaBalance:last.tfsaBal,nonRegBalance:last.nonRegBal,nonRegACB:finalACB});
+  },[r,wPlan]);
   const retTax=useMemo(()=>{const cppA=r.cppMonthly*12,oasA=r.oasMonthly*12,rrifMinA=r.rrifBalance*getRRIFRate(r.retirementAge),oN=oasNet(cppA+oasA+rrifMinA,oasA),oasClawback=oasA-oN,taxable=cppA+oN+rrifMinA,tax=calcTax(taxable,r.province),desired=r.desiredMonthlyIncome*12;return{cppA,oasA,oN,oasClawback,rrifMinA,taxable,tax,desired,gap:Math.max(0,desired-(cppA+oN))}},[r]);
 
   const applyRisk=key=>{const p=RISK[key];setS(prev=>({...prev,riskProfile:key,stdDev:p.stdDev,allocation:{...p.allocation},assetReturns:{...p.assetReturns}}));setResults(null)};
@@ -430,18 +433,17 @@ export default function App(){
           <div style={panel}>
             <div style={{fontSize:10,letterSpacing:"0.1em",color:"#8899aa",textTransform:"uppercase",marginBottom:12}}>Withdrawal Strategy</div>
             <label style={{fontSize:10,color:"#8899aa",display:"block",marginBottom:5}}>Withdrawal Order</label>
-            <select value={r.withdrawOrder} onChange={e=>updR("withdrawOrder")(e.target.value)} style={{marginBottom:12}}><option value="optimal">Optimal (Tax-Minimizing)</option><option value="rrif-first">RRIF/RRSP First</option><option value="tfsa-first">TFSA First</option><option value="nonreg-first">Non-Registered First</option></select>
+            <select value={r.withdrawOrder} onChange={e=>updR("withdrawOrder")(e.target.value)} style={{marginBottom:12}}><option value="optimal">Optimal (Maximize After-Tax Estate)</option><option value="rrif-first">RRIF/RRSP First</option><option value="tfsa-first">TFSA First</option><option value="nonreg-first">Non-Registered First</option></select>
             <div style={{fontSize:10,color:"#8899aa",lineHeight:1.7,padding:"8px 10px",background:"rgba(255,255,255,0.02)",borderRadius:7}}>
               {r.withdrawOrder==="optimal"&&(<div style={{display:"flex",flexDirection:"column",gap:8}}>
-                <div style={{fontSize:11,color:"#D4AF37",fontWeight:600}}>Goal: Minimize lifetime tax · Maximize remaining estate</div>
+                <div style={{fontSize:11,color:"#D4AF37",fontWeight:600}}>Goal: Maximize after-tax estate value to heirs (today's dollars)</div>
                 <div style={{fontSize:10,color:"#8899aa",lineHeight:1.8}}>
-                  <strong style={{color:"#cbd5e1"}}>Step 1 — RRIF minimum only</strong> (mandatory by law, 100% taxable income — no choice but to take it)<br/>
-                  <strong style={{color:"#cbd5e1"}}>Step 2 — Non-Registered</strong> fills the income gap (only 50% of the accrued gain is taxable — far more tax-efficient than extra RRIF)<br/>
-                  <strong style={{color:"#cbd5e1"}}>Step 3 — TFSA as last resort</strong> (withdrawals are tax-free, and the balance grows tax-free and passes to heirs completely tax-free — most valuable account to preserve)<br/>
-                  <strong style={{color:"#cbd5e1"}}>Step 4 — Additional RRIF</strong> only if Non-Reg and TFSA are both exhausted and income is still short
+                  <strong style={{color:"#cbd5e1"}}>Step 1 — RRIF fills the full income gap</strong> (worst estate asset: ~50% taxed at death on terminal return — far better to draw it now at your lower retirement rate of ~25–35%)<br/>
+                  <strong style={{color:"#cbd5e1"}}>Step 2 — Non-Registered</strong> if RRIF insufficient (intermediate: only 50% of gains taxable at death — better than RRIF, worse than TFSA)<br/>
+                  <strong style={{color:"#cbd5e1"}}>Step 3 — TFSA as absolute last resort</strong> (best estate asset: $0 tax at death — $1 in TFSA = $1 to heirs, preserve this longest)
                 </div>
                 <div style={{fontSize:10,color:"#4a5568",lineHeight:1.7,borderTop:"1px solid rgba(255,255,255,0.06)",paddingTop:7}}>
-                  Why this beats RRIF-First: By holding RRIF to its minimum, the RRIF balance stays manageable and future mandatory minimums stay smaller — reducing total taxable income across retirement. Each dollar from Non-Reg adds only 50¢ of taxable income vs. $1.00 from extra RRIF. Preserving TFSA longest maximizes its tax-free compounding and the tax-free inheritance it provides.
+                  The logic: every dollar of RRIF drawn during retirement pays ~30% tax now instead of ~50% at death — a 20¢/dollar saving that flows directly into after-tax estate. The Estate tab reflects final balances at life expectancy after all withdrawals.
                 </div>
               </div>)}
               {r.withdrawOrder==="rrif-first"&&"Maximizes RRIF first to reduce future estate tax. Best for large RRIF balances with no spouse rollover."}
@@ -479,7 +481,7 @@ export default function App(){
 
     {/* ══ ESTATE ══ */}
     {tab==="estate"&&(<div style={{display:"flex",flexDirection:"column",gap:18}}>
-      <SH title={`Tax at Death & Estate Analysis — ${r.province}`} sub="All values in TODAY'S dollars (real, inflation-adjusted) · Estate tax calculated on real balances using approximate nominal brackets"/>
+      <SH title={`Tax at Death & Estate Analysis — ${r.province}`} sub="Balances shown are at life expectancy after all withdrawals (today's dollars) · Tax calculated on final balances using approximate nominal brackets"/>
       {simDriven&&<div className="syncbar">↑ Account balances are driven from your Plan simulation (P50 × account split). Adjust in the Withdraw tab to update estate projections.</div>}
       <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr 1fr",gap:14}}>
         {[{key:"RRSP / RRIF",color:"rgba(212,175,55,0.35)",tc:"#D4AF37",gross:estate.rrifGross,tax:estate.rrifTax,net:estate.rrifNet,rate:estate.rrifRate,desc:"Entire balance deemed received as income at death — fully taxable at the highest marginal rate. Rolls tax-free to a surviving spouse's RRSP/RRIF.",extra:null},
@@ -544,5 +546,4 @@ export default function App(){
     </div>
   </div>)
 }
-
 
